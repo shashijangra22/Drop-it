@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div>
-		<h1>You are logged in : {{ username }}</h1>
+	<div id="body">
+		<h1>You are logged in : {{ user.email }}</h1>
+		<p>Here are your files: </p>
+		<hr>
+		{% for item in user.files %}
+			<div id="{{ item.id }}" class="filePost">
+				<p>{{ item.filename }}</p>
+				<button class="delBtn">Delete</button>
+				<hr>
+			</div>
+		{% endfor %}
+		<form action="upload" method="post" enctype="multipart/form-data">
+			<input type="file" name="inputFile">
+			<button>Upload</button>
+		</form>
 		<form action="logout">
 			<button>Logout</button>
 		</form>
 	</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+		var el=$('#body');
+		delBtn=el.find('.delBtn');
+		delBtn.on('click',deleteFile);
+
+		function deleteFile(event) {
+			$div=$(this).parent();
+			fileID=$div.attr('id');
+			$.ajax({
+				url:"deleteFile/"+fileID,
+				success: function (result) {
+					if(result.length){
+						console.log($(this));
+						console.log(result);
+						$div.fadeOut();
+					}
+				}
+			});
+		}
+	</script>
 {% endblock %}
