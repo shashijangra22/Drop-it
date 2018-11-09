@@ -1,6 +1,7 @@
 from app import app, db
 from flask import render_template, session, url_for, redirect, request
 from app.models import User, File
+from sqlalchemy import and_
 
 def isLoggedIn():
 	if 'userID' in session:
@@ -44,21 +45,39 @@ def register():
 	db.session.commit()
 	return "successful registration!"
 
+@app.route('/home/<path:path>')
+def show(path):
+	if isLoggedIn():
+		path="/home/"+path
+		path=path.replace(" ","%20")
+		user=User.query.get(session['userID'])
+		files=File.query.filter(and_(File.owner==user, File.url==path))
+		return render_template('home.html', user=user, files=files)
+	return redirect(url_for('index'))
+
 @app.route('/home')
 def home():
 	if isLoggedIn():
 		user=User.query.get(session['userID'])
-		return render_template('home.html', user=user)
+		files=File.query.filter(and_(File.owner==user, File.url=="/home"))
+		return render_template('home.html', user=user, files=files)
 	return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
 def upload():
 	user=User.query.get(session['userID'])
-	file = request.files['inputFile']
-	newFile=File(filename=file.filename, data=file.read(), owner=user)
-	db.session.add(newFile)
+	file = request.files.get('inputFile', False)
+	url=request.form.get('url', False)
+	if file:
+		newFile=File(filename=file.filename, url=url, data=file.read(), owner=user)
+		db.session.add(newFile)
+	else:
+		folderName=request.form['folderName']
+		newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
+		db.session.add(newFolder)
 	db.session.commit()
-	return redirect(url_for('index'))
+	return "1"
+
 
 @app.route('/deleteFile/<fileID>')
 def deleteFile(fileID):

@@ -3,22 +3,30 @@
 {% block content %}
 	<div id="body">
 		<h1>You are logged in : {{ user.email }}</h1>
+		<p>You have {{ user.files.count() }} items</p>
+		<form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
+			<input type="file" name="inputFile">
+			<button type="submit">Upload</button>
+			<input id="folderName" type="text" name="folderName">
+			<button type="submit">Create New Folder</button>
+		</form>
+		<form action="/logout">
+			<button>Logout</button>
+		</form>
 		<p>Here are your files: </p>
 		<hr>
-		{% for item in user.files %}
+		{% for item in files %}
 			<div id="{{ item.id }}" class="filePost">
-				<p>{{ item.filename }}</p>
+				{% if item.isFile %}
+					File: {{ item.url }} {{ item.owner.username }}
+				{% else %}
+					Folder: {{ item.url }} {{ item.owner.username }}
+				{% endif %}
+				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
 				<button class="delBtn">Delete</button>
 				<hr>
 			</div>
 		{% endfor %}
-		<form action="upload" method="post" enctype="multipart/form-data">
-			<input type="file" name="inputFile">
-			<button>Upload</button>
-		</form>
-		<form action="logout">
-			<button>Logout</button>
-		</form>
 	</div>
 {% endblock %}
 {% block scripts %}
@@ -27,6 +35,24 @@
 		delBtn=el.find('.delBtn');
 		delBtn.on('click',deleteFile);
 
+		$('#uploadForm').submit(function (e) {
+			e.preventDefault();
+			var form = $('form')[0];
+			var formData=new FormData(form);
+			formData.append('url', window.location.pathname);
+			$.ajax({
+				url:'/upload',
+				data:formData,
+				type:'POST',
+				contentType:false,
+				processData:false,
+				success:function (result) {
+					if(result=="1")
+						window.location.href=window.location.pathname;
+				}
+			});
+		});
+
 		function deleteFile(event) {
 			$div=$(this).parent();
 			fileID=$div.attr('id');
@@ -34,7 +60,6 @@
 				url:"deleteFile/"+fileID,
 				success: function (result) {
 					if(result.length){
-						console.log($(this));
 						console.log(result);
 						$div.fadeOut();
 					}
