@@ -2,6 +2,7 @@ from app import app, db
 from flask import render_template, session, url_for, redirect, request
 from app.models import User, File
 from sqlalchemy import and_
+import json
 
 def isLoggedIn():
 	if 'userID' in session:
@@ -51,16 +52,34 @@ def show(path):
 		path="/home/"+path
 		path=path.replace(" ","%20")
 		user=User.query.get(session['userID'])
-		files=File.query.filter(and_(File.owner==user, File.url==path))
-		return render_template('home.html', user=user, files=files)
+		myFiles=File.query.filter(and_(File.owner==user, File.url==path))
+		sharedWith={}
+		for item in myFiles:
+			sharedWith[item.id]=[]
+			viewers=json.loads(item.viewers)
+			for u in viewers:
+				sharedWith[item.id].append(u)
+		return render_template('home.html', user=user, sharedWith=sharedWith, myFiles=myFiles)
 	return redirect(url_for('index'))
 
 @app.route('/home')
 def home():
 	if isLoggedIn():
 		user=User.query.get(session['userID'])
-		files=File.query.filter(and_(File.owner==user, File.url=="/home"))
-		return render_template('home.html', user=user, files=files)
+		AllFiles=File.query.all()
+		sharedFiles=[]
+		for item in AllFiles:
+			viewers=json.loads(item.viewers)
+			if user.username in viewers:
+				sharedFiles.append(item)
+		myFiles=File.query.filter(and_(File.owner==user, File.url=="/home"))
+		sharedWith={}
+		for item in myFiles:
+			sharedWith[item.id]=[]
+			viewers=json.loads(item.viewers)
+			for u in viewers:
+				sharedWith[item.id].append(u)
+		return render_template('home.html', user=user, sharedWith=sharedWith, myFiles=myFiles, sharedFiles=sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
@@ -78,6 +97,23 @@ def upload():
 	db.session.commit()
 	return "1"
 
+@app.route('/share', methods=['POST'])
+def share():
+	fileID=request.form.get('fileID', False)
+	file=File.query.get(fileID)
+	if not file:
+		return "1"	# file not found
+	username=request.form.get('username', False)
+	if not username:
+		return "2"	# user not found 
+	toUser=User.query.filter_by(username=username)
+	if not toUser:
+		return "2" #user not found
+	viewers=json.loads(file.viewers)
+	viewers[username]=True
+	file.viewers=json.dumps(viewers)
+	db.session.commit()
+	return "3"
 
 @app.route('/deleteFile/<fileID>')
 def deleteFile(fileID):

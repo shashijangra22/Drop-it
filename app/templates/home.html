@@ -3,7 +3,6 @@
 {% block content %}
 	<div id="body">
 		<h1>You are logged in : {{ user.email }}</h1>
-		<p>You have {{ user.files.count() }} items</p>
 		<form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
 			<input type="file" name="inputFile">
 			<button type="submit">Upload</button>
@@ -13,18 +12,34 @@
 		<form action="/logout">
 			<button>Logout</button>
 		</form>
-		<p>Here are your files: </p>
+		<p>Here are your files: {{ user.files.count() }} items</p>
 		<hr>
-		{% for item in files %}
+		{% for item in myFiles %}
 			<div id="{{ item.id }}" class="filePost">
 				{% if item.isFile %}
-					File: {{ item.url }} {{ item.owner.username }}
+					File: {{ item.url }} -shared with- {{ sharedWith[item.id] }}
 				{% else %}
-					Folder: {{ item.url }} {{ item.owner.username }}
+					Folder: {{ item.url }}
 				{% endif %}
 				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
 				<button class="delBtn">Delete</button>
+				{% if item.isFile %}
+					<input type="text">
+					<button class="shareBtn" >Share</button>
+				{% endif %}
 				<hr>
+			</div>
+		{% endfor %}
+		<p>Files shared with you : {{ sharedFiles|length }} items</p>
+		<hr>
+		{% for item in sharedFiles %}
+			<div id="{{ item.id }}" class="filePost">
+				{% if item.isFile %}
+					File: {{ item.url }} -shared by- {{ item.owner.username }}
+				{% else %}
+					Folder: {{ item.url }} -shared by- {{ item.owner.username }}
+				{% endif %}
+				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
 			</div>
 		{% endfor %}
 	</div>
@@ -33,7 +48,9 @@
 <script type="text/javascript">
 		var el=$('#body');
 		delBtn=el.find('.delBtn');
+		shareBtn=el.find('.shareBtn');
 		delBtn.on('click',deleteFile);
+		shareBtn.on('click',shareFile);
 
 		$('#uploadForm').submit(function (e) {
 			e.preventDefault();
@@ -53,15 +70,33 @@
 			});
 		});
 
+		function shareFile(event) {
+			$div=$(this).parent();
+			fileID=$div.attr('id');
+			username=$div.find('input').val();
+			$.ajax({
+				url:"/share",
+				method:'POST',
+				data:{username:username, fileID:fileID},
+				success:function (result) {
+					console.log(result);
+					if(result=="3"){
+						window.location.href=window.location.pathname;
+					}
+				}
+			});
+		}
+
 		function deleteFile(event) {
 			$div=$(this).parent();
 			fileID=$div.attr('id');
 			$.ajax({
-				url:"deleteFile/"+fileID,
+				url:"/deleteFile/"+fileID,
 				success: function (result) {
 					if(result.length){
 						console.log(result);
 						$div.fadeOut();
+						window.location.href=window.location.pathname;
 					}
 				}
 			});

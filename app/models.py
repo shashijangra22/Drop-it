@@ -25,6 +25,7 @@ class File(db.Model):
 	url = db.Column(db.String(120))
 	data = db.Column(db.LargeBinary)
 	isFile = db.Column(db.Boolean, default=True)
+	viewers = db.Column(db.Text, default="{}")
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
