@@ -12,12 +12,12 @@
 		<form action="/logout">
 			<button>Logout</button>
 		</form>
-		<p>Here are your files: {{ user.files.count() }} items</p>
+		<p>Here are your files:</p>
 		<hr>
 		{% for item in myFiles %}
 			<div id="{{ item.id }}" class="filePost">
 				{% if item.isFile %}
-					File: {{ item.url }} -shared with- {{ sharedWith[item.id] }}
+					File: {{ item.url }}
 				{% else %}
 					Folder: {{ item.url }}
 				{% endif %}
@@ -30,16 +30,18 @@
 				<hr>
 			</div>
 		{% endfor %}
-		<p>Files shared with you : {{ sharedFiles|length }} items</p>
+		<p>Here are files shared with you</p>
 		<hr>
 		{% for item in sharedFiles %}
 			<div id="{{ item.id }}" class="filePost">
 				{% if item.isFile %}
-					File: {{ item.url }} -shared by- {{ item.owner.username }}
+					File: {{ item.url }}
 				{% else %}
-					Folder: {{ item.url }} -shared by- {{ item.owner.username }}
+					Folder: {{ item.url }}
 				{% endif %}
+				- shared by - {{ item.owner.username }}
 				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
+				<hr>
 			</div>
 		{% endfor %}
 	</div>

@@ -1,18 +1,231 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div>
-		<form method="post" action="login">
-			<input placeholder="username" id="username" type="text" name="username"><br>
-			<input placeholder="password" id="password" type="password" name="password"><br>
-			<button>Login</button>
-		</form>
-		<br>
-		<form method="post" action="register">
-			<input placeholder="username" type="text" name="username"><br>
-			<input placeholder="password" type="password" name="password"><br>
-			<input placeholder="email" type="email" name="email"><br>
-			<button>Register</button>
-		</form>
+<div class="section valign-wrapper" style="background: black no-repeat center fixed;background-size: cover;height: 95vh">
+	<div class="row container">
+		<div class="col l4 offset-l4 s12 m12">
+			<div id="LoginFormCard" class="card valign z-depth-5"">
+				<div class="card-content" style="text-align: center;padding: 0px">
+					<span style="font-size: 20px" class="card-title">Login</span>
+				</div>
+				<div class="card-action" style="padding: 0px 15px 15px 15px;">
+					<div class="row" style="margin-bottom: 0px">
+					    <form id="LoginForm" role="form" class="col s12" style="text-align: center;">
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <input id="usrname" type="text" name="usrname">
+					          <label for="usrname">Username</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <input id="psswd" type="password" name="psswd">
+					          <label for="psswd">Password</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <button class="btn waves-effect waves-light" id="LoginFormButton" name="LoginFormButton" type="submit">Login</button>
+						          <div id="loginSpinner" class="hide preloader-wrapper small">
+									    <div class="spinner-layer spinner-blue-only">
+										      <div class="circle-clipper left">
+										        <div class="circle"></div>
+										      </div>
+										     <div class="gap-patch">
+										        <div class="circle"></div>
+										      </div>
+										      <div class="circle-clipper right">
+										        <div class="circle"></div>
+										      </div>
+									    </div>
+								  </div>
+					        </div>
+					      </div>
+					      <p style="text-align: center;margin-bottom: 0px;"><a style="cursor: pointer;margin-right: 0px" onclick="showPasswordForm()">Forgot Password ?</a></p>
+					      <p style="text-align: center;margin-top: 5px">Need an account ?<a style="cursor: pointer;margin-right: 0px" onclick="showRegisterForm()"> Sign Up !</a></p>
+					    </form>
+					 </div>
+				</div>
+			</div>
+			<div id="PasswordFormCard" class="hide card valign z-depth-5">
+				<div class="card-content" style="text-align: center;padding: 0px">
+					<span style="font-size: 20px" class="card-title">Forgot Password</span>
+				</div>
+				<div class="card-action" style="padding: 0px 15px 15px 15px;">
+					<div class="row" style="margin-bottom: 0px">
+						<form id="PasswordForm" role="form" class="col s12" style="text-align: center;">
+							<div class="row" style="margin-bottom: 0px">
+								<div class="input-field col s12">
+									<input type="text" name="verifyEmail" id="verifyEmail">
+									<label for="verifyEmail">Email</label>
+								</div>
+							</div>
+							<div class="row" style="margin-bottom: 0px">
+								<div class="input-field col s12">
+									<button class="btn waves-effect waves-light" id="PasswordFormButton" name="PasswordFormButton" type="submit">Send Reset Link</button>
+									<div id="verifySpinner" class="hide preloader-wrapper small">
+									    <div class="spinner-layer spinner-blue-only">
+										      <div class="circle-clipper left">
+										        <div class="circle"></div>
+										      </div>
+										     <div class="gap-patch">
+										        <div class="circle"></div>
+										      </div>
+										      <div class="circle-clipper right">
+										        <div class="circle"></div>
+										      </div>
+									    </div>
+								  </div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<p style="text-align: center;margin-bottom: 0px">Go back to <a style="cursor: pointer;margin-right: 0px" onclick="showLoginForm()"> Log In !</a></p>
+				</div>
+			</div>
+			<div id="RegisterFormCard" class="hide card valign z-depth-5">
+				<div class="card-content" style="text-align: center;padding: 0px">
+					<span style="font-size: 20px" class="card-title">Register</span>
+				</div>
+				<div class="card-action" style="padding: 0px 15px 15px 15px;">
+					<div class="row" style="margin-bottom: 0px">
+					    <form id="RegisterForm" role="form" class="col s12" style="text-align: center;">
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s6">
+					          <input id="fname" type="text" name="fname">
+					          <label for="fname">First Name</label>
+					        </div>
+					        <div class="input-field col s6">
+					          <input id="lname" type="text" name="lname">
+					          <label for="lname">Last Name</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <input id="username" type="text" name="username" class="tooltipped" data-position="top" data-delay="50" data-tooltip="Be Creative ! Be Anonymous ;)">
+					          <label for="username">Username</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <input id="email" type="text" name="email" class="tooltipped" data-position="top" data-delay="50" data-tooltip="We will verify this :)">
+					          <label for="email">Email</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s6">
+					          <input id="password" type="password" name="password">
+					          <label for="password">Password</label>
+					        </div>
+					        <div class="input-field col s6">
+					          <input id="confirmpassword" type="password" name="confirmpassword">
+					          <label for="confirmpassword">Confirm Password</label>
+					        </div>
+					      </div>
+					      <div class="row" style="margin-bottom: 0px;">
+					        <div class="input-field col s12">
+					          <button class="btn waves-effect waves-light"  type="submit" id="RegisterFormButton" name="RegisterFormButton">Register</button>
+						          <div id="RegisterSpinner" class="hide preloader-wrapper small">
+									    <div class="spinner-layer spinner-blue-only">
+									      <div class="circle-clipper left">
+									        <div class="circle"></div>
+									      </div>
+									     <div class="gap-patch">
+									        <div class="circle"></div>
+									      </div>
+									      <div class="circle-clipper right">
+									        <div class="circle"></div>
+									      </div>
+									    </div>
+									</div>
+					        </div>
+					      </div>
+					      <p style="text-align: center;">Already Signed Up ?<a style="cursor: pointer;margin-right: 0px" onclick="showLoginForm()"> Log In !</a></p>
+					    </form>
+					 </div>
+				</div>
+			</div>
+		</div>
 	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+
+	function showRegisterForm() {
+		$('#LoginFormCard').addClass('hide');
+		$('#RegisterFormCard').removeClass('hide');
+	}
+	function showLoginForm() {
+		$('#RegisterFormCard').addClass('hide');
+		$('#PasswordFormCard').addClass('hide');
+		$('#LoginFormCard').removeClass('hide');
+	}
+	function showPasswordForm() {
+		$('#LoginFormCard').addClass('hide');
+		$('#PasswordFormCard').removeClass('hide');
+	}
+
+	var $loginForm=$('#LoginForm');
+	var $registerForm=$('#RegisterForm');
+
+	$loginForm.submit(function (e) {
+			e.preventDefault();
+			$('#LoginFormButton').addClass('hide');
+            $('#loginSpinner').addClass('active');
+            $('#loginSpinner').removeClass('hide');
+			var form = $('form')[0];
+			var formData=new FormData(form);
+			$.ajax({
+				url:'/login',
+				data:formData,
+				type:'POST',
+				contentType:false,
+				processData:false,
+				success:function (result) {
+					if(result=="1"){
+						M.toast({html: 'Yeyy ! You are in.', displayLength:3000});
+	                    window.location.replace('home');
+					}
+					else{
+						M.toast({html: result, displayLength:5000});
+	                	$('#loginSpinner').removeClass('active');
+	                	$('#loginSpinner').addClass('hide');
+	                	$('#LoginFormButton').removeClass('hide');
+					}
+				}
+			});
+		});
+
+	$registerForm.submit(function (e) {
+			e.preventDefault();
+			$('#RegisterFormButton').addClass('hide');
+            $('#RegisterSpinner').addClass('active');
+            $('#RegisterSpinner').removeClass('hide');
+			var form = $('form')[2];
+			var formData=new FormData(form);
+			$.ajax({
+				url:'/register',
+				data:formData,
+				type:'POST',
+				contentType:false,
+				processData:false,
+				success:function (result) {
+					if(result=="1"){
+						M.toast({html: 'Success :) You are Registered!', displayLength:3000});
+						$('#RegisterSpinner').removeClass('active');
+	                    $('#RegisterSpinner').addClass('hide');
+	                    $('#RegisterFormButton').removeClass('hide');
+					}
+					else{
+						M.toast({html: result, displayLength:5000});
+	                	$('#RegisterSpinner').removeClass('active');
+	                	$('#RegisterSpinner').addClass('hide');
+	                	$('#RegisterFormButton').removeClass('hide');
+					}
+				}
+			});
+		});
+
+</script>
 {% endblock %}

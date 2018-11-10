@@ -19,32 +19,55 @@ def index():
 def login():
 	if request.method=='GET':
 		return redirect(url_for('index'))
-	username=request.form['username']
-	password=request.form['password']
+	username=request.form.get('usrname', False)
+	if not username:
+		return "Please fill username!"
+	password=request.form.get('psswd', False)
+	if not password:
+		return "Please fill password!"
 	user=User.query.filter_by(username=username).first()
-	if user is None or not user.check_pass(password):
-		return "invalid details!"
+	if user is None:
+		return "Invalid Username!"
+	if not user.check_pass(password):
+		return "Invalid Password!"
 	session['userID']=user.id
-	return redirect(url_for('home'))
+	return "1"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	if request.method=='GET':
 		return redirect(url_for('index'))
-	username=request.form['username']
-	password=request.form['password']
-	email=request.form['email']
+	fname=request.form.get('fname', False)
+	if not fname:
+		return "Please fill First Name!"
+	lname=request.form.get('lname', False)
+	if not lname:
+		return "Please fill Last Name!"
+	username=request.form.get('username', False)
+	if not username:
+		return "Please fill Username!"
+	email=request.form.get('email', False)
+	if not email:
+		return "Please fill Email!"
+	password=request.form.get('password', False)
+	if not password:
+		return "Please fill Password!"
+	cpassword=request.form.get('confirmpassword', False)
+	if not cpassword:
+		return "Please fill Confirm Password!"
+	if password!=cpassword:
+		return "Passwords fields doesn't match!"
 	user=User.query.filter_by(email=email).first()
 	if user:
 		return "Email already registered!"
 	user=User.query.filter_by(username=username).first()
 	if user:
 		return "Username already exists!"
-	user=User(username=username, email=email)
+	user=User(fname=fname, lname=lname, username=username, email=email)
 	user.set_pass(password)
 	db.session.add(user)
 	db.session.commit()
-	return "successful registration!"
+	return "1"
 
 @app.route('/home/<path:path>')
 def show(path):
@@ -53,33 +76,15 @@ def show(path):
 		path=path.replace(" ","%20")
 		user=User.query.get(session['userID'])
 		myFiles=File.query.filter(and_(File.owner==user, File.url==path))
-		sharedWith={}
-		for item in myFiles:
-			sharedWith[item.id]=[]
-			viewers=json.loads(item.viewers)
-			for u in viewers:
-				sharedWith[item.id].append(u)
-		return render_template('home.html', user=user, sharedWith=sharedWith, myFiles=myFiles)
+		return render_template('home.html', user=user, myFiles=myFiles, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/home')
 def home():
 	if isLoggedIn():
 		user=User.query.get(session['userID'])
-		AllFiles=File.query.all()
-		sharedFiles=[]
-		for item in AllFiles:
-			viewers=json.loads(item.viewers)
-			if user.username in viewers:
-				sharedFiles.append(item)
 		myFiles=File.query.filter(and_(File.owner==user, File.url=="/home"))
-		sharedWith={}
-		for item in myFiles:
-			sharedWith[item.id]=[]
-			viewers=json.loads(item.viewers)
-			for u in viewers:
-				sharedWith[item.id].append(u)
-		return render_template('home.html', user=user, sharedWith=sharedWith, myFiles=myFiles, sharedFiles=sharedFiles)
+		return render_template('home.html', user=user, myFiles=myFiles, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
@@ -91,7 +96,7 @@ def upload():
 		newFile=File(filename=file.filename, url=url, data=file.read(), owner=user)
 		db.session.add(newFile)
 	else:
-		folderName=request.form['folderName']
+		folderName=request.form.get('folderName', False)
 		newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
 		db.session.add(newFolder)
 	db.session.commit()
@@ -106,12 +111,10 @@ def share():
 	username=request.form.get('username', False)
 	if not username:
 		return "2"	# user not found 
-	toUser=User.query.filter_by(username=username)
+	toUser=User.query.filter_by(username=username).first()
 	if not toUser:
 		return "2" #user not found
-	viewers=json.loads(file.viewers)
-	viewers[username]=True
-	file.viewers=json.dumps(viewers)
+	toUser.sharedFiles.append(file)
 	db.session.commit()
 	return "3"
 

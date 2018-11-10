@@ -1,1 +1,2 @@
 FLASK_APP=dropit.py
+FLASK_DEBUG=1
