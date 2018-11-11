@@ -1,0 +1,29 @@
+.team{
+  max-width: 130px;
+  max-height: 130px;
+}
+.iconpadding{
+  padding-left: 10px;
+  padding-right: 10px;
+  color: black;
+  font-size: 20px !important;
+}
+footer{
+  padding: 20px;
+  color: white;
+  text-align: center;
+  letter-spacing: 3px;
+}
+input{
+  margin-bottom: 0px !important;
+}
+label{
+  font-size: 0.8rem !important;
+}
+
+@media(min-width: 992px)
+{
+  .brand-logo{
+    padding-left: 20px !important;
+  }
+}

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename="homePage.css") }}">
+{% endblock %}
 {% block content %}
 <header>
 	<div class="navbar-fixed">
@@ -13,30 +15,18 @@
 		    </div>
 		  </nav>
 	</div>
-	<ul class="sidenav" id="mobile-demo">
-	    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+
+	<ul class="sidenav sidenav-fixed" id="mobile-demo">
+	    <li class="active"><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-cloud"></i> My Files</a></li>
+	    <li><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-users"></i>Shared With Me</a></li>
+	    <li><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-user"></i>My Profile</a></li>
+	    <li><a href="{{ url_for('logout') }}"><i style="margin: 0px" class="fas fa-sign-out-alt"></i>Logout</a></li>
 	</ul>
 </header>
 <main>
 	<div>
 		<div class="row">
-		    <div class="col m4">
-		      <ul class="tabs">
-		        <li class="tab col m6"><a class="active" href="#myFilesSection">My Files</a></li>
-		        <li class="tab col m6"><a href="#sharedFilesSection">Files Shared with me</a></li>
-		      </ul>
-		    </div>
-		  </div>
-		<div class="row">
-			<div class="col s10 offset-s1">
-				<!-- <div id="uploadSection" class="section">
-					<form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
-						<input type="file" name="inputFile">
-						<button type="submit">Upload</button>
-						<input id="folderName" type="text" name="folderName">
-						<button type="submit">Create New Folder</button>
-					</form>
-				</div> -->
+			<div class="col s12">
 				<div id="myFilesSection" class="row">
 					<h5>Folders</h5>
 					<hr>
@@ -88,25 +78,22 @@
 					        </tbody>
 					      </table>
 				</div>
-				<div id="sharedFilesSection" class="row">
-					<p>Here are files shared with you</p>
-					<hr>
-					{% for item in sharedFiles %}
-						<div id="{{ item.id }}" class="filePost">
-							{% if item.isFile %}
-								File: {{ item.url }}
-							{% else %}
-								Folder: {{ item.url }}
-							{% endif %}
-							- shared by - {{ item.owner.username }}
-							<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
-							<hr>
-						</div>
-					{% endfor %}
-				</div>
 			</div>
 		</div>
 	</div>
+	  <a style="position: fixed;right: 0px;bottom: 0px;margin: 15px" class="btn-floating btn-large waves-effect waves-light blue modal-trigger" href="#uploadModal"><i class="material-icons">add</i></a>
+	   <!-- Modal Structure -->
+		  <div id="uploadModal" class="modal">
+		    <div class="modal-content">
+		      <h4>Select files to upload</h4>
+		      <form id="uploadForm" enctype="multipart/form-data">
+					<input type="file" name="inputFile">
+				</form>
+		    </div>
+		    <div class="modal-footer">
+		      <a class="waves-effect waves-green btn-flat" id="uploadBtn">Upload</a>
+		    </div>
+		  </div>
 </main>
 {% endblock %}
 {% block scripts %}
@@ -114,16 +101,41 @@
 
 	$(document).ready(function(){
 	    $('.sidenav').sidenav();
-	    $('.tabs').tabs();
+	    $('.modal').modal();
 	  });
 
 		var el=$('main');
 		delBtn=el.find('.delBtn');
 		shareBtn=el.find('.shareBtn');
+		uploadBtn=el.find('#uploadBtn');
+		
 		delBtn.on('click',deleteFile);
 		shareBtn.on('click',shareFile);
+		uploadBtn.on('click',uploadFile);
+		
+		function uploadFile() {
+			var form = $('form')[0];
+			var formData=new FormData(form);
+			formData.append('url', window.location.pathname);
+			$.ajax({
+				url:'/upload',
+				data:formData,
+				type:'POST',
+				contentType:false,
+				processData:false,
+				success:function (result) {
+					if(result=="1"){
+						M.toast({html: "Succesfully uploaded !", displayLength:3000});
+						window.location.href=window.location.pathname;
+					}
+					else{
+						M.toast({html: result, displayLength:5000});
+					}
+				}
+			});
+		}
 
-		$('#uploadForm').submit(function (e) {
+		$('uploadForm').submit(function (e) {
 			e.preventDefault();
 			var form = $('form')[0];
 			var formData=new FormData(form);
