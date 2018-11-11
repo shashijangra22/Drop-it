@@ -20,3 +20,10 @@ input{
 label{
   font-size: 0.8rem !important;
 }
+
+@media(min-width: 992px)
+{
+  .brand-logo{
+    padding-left: 20px !important;
+  }
+}

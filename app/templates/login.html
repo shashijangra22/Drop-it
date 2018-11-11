@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<div class="navbar-fixed">
+  <nav class="blue">
+    <div class="nav-wrapper">
+      <a style="font-size: 24px;" href="{{url_for('home')}}" class="brand-logo center">Drop it!</a>
+	</div>
+  </nav>
+</div>
+
 <div class="section valign-wrapper" style="background: black no-repeat center fixed;background-size: cover;height: 95vh">
 	<div class="row container">
 		<div class="col l4 offset-l4 s12 m12">
@@ -148,6 +157,9 @@
 		</div>
 	</div>
 </div>
+<footer class="page-footer">
+	    Made with <i class="fa fa-heart"></i> at OBH
+	</footer>
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
@@ -174,14 +186,12 @@
 			$('#LoginFormButton').addClass('hide');
             $('#loginSpinner').addClass('active');
             $('#loginSpinner').removeClass('hide');
-			var form = $('form')[0];
-			var formData=new FormData(form);
+			// var form = $('form')[0];
+			var formData=$loginForm.serialize();
 			$.ajax({
 				url:'/login',
 				data:formData,
 				type:'POST',
-				contentType:false,
-				processData:false,
 				success:function (result) {
 					if(result=="1"){
 						M.toast({html: 'Yeyy ! You are in.', displayLength:3000});
@@ -202,14 +212,12 @@
 			$('#RegisterFormButton').addClass('hide');
             $('#RegisterSpinner').addClass('active');
             $('#RegisterSpinner').removeClass('hide');
-			var form = $('form')[2];
-			var formData=new FormData(form);
+			// var form = $('form')[2];
+			var formData=$registerForm.serialize();
 			$.ajax({
 				url:'/register',
 				data:formData,
 				type:'POST',
-				contentType:false,
-				processData:false,
 				success:function (result) {
 					if(result=="1"){
 						M.toast({html: 'Success :) You are Registered!', displayLength:3000});

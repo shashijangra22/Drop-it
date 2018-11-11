@@ -1,54 +1,123 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div id="body">
-		<h1>You are logged in : {{ user.email }}</h1>
-		<form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
-			<input type="file" name="inputFile">
-			<button type="submit">Upload</button>
-			<input id="folderName" type="text" name="folderName">
-			<button type="submit">Create New Folder</button>
-		</form>
-		<form action="/logout">
-			<button>Logout</button>
-		</form>
-		<p>Here are your files:</p>
-		<hr>
-		{% for item in myFiles %}
-			<div id="{{ item.id }}" class="filePost">
-				{% if item.isFile %}
-					File: {{ item.url }}
-				{% else %}
-					Folder: {{ item.url }}
-				{% endif %}
-				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
-				<button class="delBtn">Delete</button>
-				{% if item.isFile %}
-					<input type="text">
-					<button class="shareBtn" >Share</button>
-				{% endif %}
-				<hr>
-			</div>
-		{% endfor %}
-		<p>Here are files shared with you</p>
-		<hr>
-		{% for item in sharedFiles %}
-			<div id="{{ item.id }}" class="filePost">
-				{% if item.isFile %}
-					File: {{ item.url }}
-				{% else %}
-					Folder: {{ item.url }}
-				{% endif %}
-				- shared by - {{ item.owner.username }}
-				<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
-				<hr>
-			</div>
-		{% endfor %}
+<header>
+	<div class="navbar-fixed">
+		<nav class="blue">
+		    <div class="nav-wrapper">
+		      <a href="{{url_for('home')}}" class="brand-logo">Drop it!</a>
+		      <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+		      <ul class="right hide-on-med-and-down">
+		        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+		      </ul>
+		    </div>
+		  </nav>
 	</div>
+	<ul class="sidenav" id="mobile-demo">
+	    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+	</ul>
+</header>
+<main>
+	<div>
+		<div class="row">
+		    <div class="col m4">
+		      <ul class="tabs">
+		        <li class="tab col m6"><a class="active" href="#myFilesSection">My Files</a></li>
+		        <li class="tab col m6"><a href="#sharedFilesSection">Files Shared with me</a></li>
+		      </ul>
+		    </div>
+		  </div>
+		<div class="row">
+			<div class="col s10 offset-s1">
+				<!-- <div id="uploadSection" class="section">
+					<form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
+						<input type="file" name="inputFile">
+						<button type="submit">Upload</button>
+						<input id="folderName" type="text" name="folderName">
+						<button type="submit">Create New Folder</button>
+					</form>
+				</div> -->
+				<div id="myFilesSection" class="row">
+					<h5>Folders</h5>
+					<hr>
+					<table>
+				        <thead>
+				          <tr>
+				              <th>Name</th>
+				              <th>Owner</th>
+				              <th>URL</th>
+				              <th>Actions</th>
+				          </tr>
+				        </thead>
+				        <tbody>
+				        	{% for item in myFiles %}
+				        		{% if item.isFile %}
+				        		{% else %}
+				        			<tr id="{{ item.id }}" class="filePost">
+							            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-folder"></i> {{ item.filename }}</a></td>
+							            <td>{{item.owner.username}}</td>
+							            <td>{{item.url}}</td>
+							            <td><button class="delBtn">Delete</button></td>
+							          </tr>
+				        		{% endif %}
+				        	{% endfor %}
+				        </tbody>
+				      </table>
+				      <h5>Files</h5>
+						<hr>
+						<table>
+					        <thead>
+					          <tr>
+					              <th>Name</th>
+					              <th>Owner</th>
+					              <th>URL</th>
+					              <th>Actions</th>
+					          </tr>
+					        </thead>
+					        <tbody>
+					        	{% for item in myFiles %}
+					        		{%  if item.isFile %}
+					        			<tr id="{{ item.id }}" class="filePost">
+								            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-file"></i> {{ item.filename }}</a></td>
+								            <td>{{item.owner.username}}</td>
+								            <td>{{item.url}}</td>
+								            <td><button class="delBtn">Delete</button><button>Share</button></td>
+								          </tr>
+					        		{% endif %}
+					        	{% endfor %}
+					        </tbody>
+					      </table>
+				</div>
+				<div id="sharedFilesSection" class="row">
+					<p>Here are files shared with you</p>
+					<hr>
+					{% for item in sharedFiles %}
+						<div id="{{ item.id }}" class="filePost">
+							{% if item.isFile %}
+								File: {{ item.url }}
+							{% else %}
+								Folder: {{ item.url }}
+							{% endif %}
+							- shared by - {{ item.owner.username }}
+							<a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><p>{{ item.filename }}</p></a>
+							<hr>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+</main>
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
-		var el=$('#body');
+
+	$(document).ready(function(){
+	    $('.sidenav').sidenav();
+	    $('.tabs').tabs();
+	  });
+
+		var el=$('main');
 		delBtn=el.find('.delBtn');
 		shareBtn=el.find('.shareBtn');
 		delBtn.on('click',deleteFile);
@@ -90,7 +159,7 @@
 		}
 
 		function deleteFile(event) {
-			$div=$(this).parent();
+			$div=$(this).closest('tr');
 			fileID=$div.attr('id');
 			$.ajax({
 				url:"/deleteFile/"+fileID,
