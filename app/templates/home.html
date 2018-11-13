@@ -17,14 +17,14 @@
 	</div>
 
 	<ul class="sidenav sidenav-fixed" id="mobile-demo">
-	    <li class="active"><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-cloud"></i> My Files</a></li>
-	    <li><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-users"></i>Shared With Me</a></li>
-	    <li><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-user"></i>My Profile</a></li>
+	    <li id="myFilesBtn" class="active"><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-cloud"></i> My Files</a></li>
+	    <li id="sharedFilesBtn"><a style="cursor: pointer;"><i style="margin: 0px" class="fas fa-users"></i>Shared With Me</a></li>
+	    <li id="profileBtn"><a style="cursor: pointer;"><i style="margin: 0px" class="fas fa-user"></i>My Profile</a></li>
 	    <li><a href="{{ url_for('logout') }}"><i style="margin: 0px" class="fas fa-sign-out-alt"></i>Logout</a></li>
 	</ul>
 </header>
 <main>
-	<div style="margin: 10px">
+	<div id="filesView" style="margin: 10px">
 		<!-- <nav class="blue">
 		    <div class="nav-wrapper">
 		      <div class="col s12" style="margin-left: 20px">
@@ -35,46 +35,64 @@
 		  <br> -->
 		<nav class="blue">
 		<div class="nav-wrapper" style="margin-bottom: 0px;">
-	        <!-- <form> -->
+	        <form id="searchForm">
 		        <div class="input-field">
-		          <input id="search" type="search" placeholder="search for files...">
-		          <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+		          <input name="searchBox" id="searchBox" type="search" placeholder="search for files...">
+		          <label class="label-icon" for="searchBox"><i class="material-icons">search</i></label>
 		          <i class="material-icons">close</i>
 		        </div>
-		      <!-- </form> -->
+		      </form>
 	      </div>
 	  </nav>
-		<div class="row">
+	  <div class="row" id="searchResultsDiv">
 			<div class="col s12">
-				<h5>Folders</h5>
+				<h5>Search Results</h5>
 				<table>
 			        <thead>
 			          <tr>
 			              <th>Name</th>
 			              <th>Owner</th>
-			              <th>URL</th>
-			              <th>Actions</th>
 			          </tr>
 			        </thead>
-			        <tbody>
-			        	{% for item in myFiles %}
-			        		{% if item.isFile %}
-			        		{% else %}
-			        			<tr id="{{ item.id }}" class="filePost">
-						            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-folder" style="font-size: 32px"></i> {{ item.filename }}</a></td>
-						            <td>{{item.owner.username}}</td>
-						            <td>{{item.url}}</td>
-						            <td><a class='dropdown-trigger' href='#' data-target='dropdown1'><i class="material-icons">more</i></a></td>
-						          </tr>
-			        		{% endif %}
-			        	{% endfor %}
+			        <tbody id="searchResults">
+	        			
 			        </tbody>
 		      </table>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col s12">
+				<h5>Folders</h5>
+				{% if myFolders.count() %}
+				<table>
+			        <thead>
+			          <tr>
+			              <th>Name</th>
+			              <th>Owner</th>
+			              <th>URL</th>
+			              <th>Actions</th>
+			          </tr>
+			        </thead>
+			        <tbody>
+			        	{% for item in myFolders %}
+		        			<tr id="{{ item.id }}" class="filePost">
+					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-folder" style="font-size: 32px"></i> {{ item.filename }}</a></td>
+					            <td>{{item.owner.username}}</td>
+					            <td>{{item.url}}</td>
+					            <td class="moreBtn"><a class='dropdown-trigger' data-target='foldersDropdown'><i class="material-icons">more</i></a></td>
+					          </tr>
+			        	{% endfor %}
+			        </tbody>
+		      </table>
+		      {% else %}
+		      <p>No Folders</p>
+		      {% endif %}
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s12">
 				<h5>Files</h5>
+				{% if myFiles.count() %}
 				<table>
 			        <thead>
 			          <tr>
@@ -86,27 +104,102 @@
 			        </thead>
 			        <tbody>
 			        	{% for item in myFiles %}
+		        			<tr id="{{ item.id }}" class="filePost">
+					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
+					            <td>{{item.owner.username}}</td>
+					            <td>{{item.url}}</td>
+					            <td class="moreBtn"><a class='dropdown-trigger' data-target='filesDropdown'><i class="material-icons">more</i></a></td>
+					          </tr>
+			        	{% endfor %}
+			       	</tbody>
+			     </table>
+			     {% else %}
+			     <p>No Files</p>
+			     {% endif %}		
+			</div>
+		</div>
+	</div>
+	<div id="profileView" style="margin: 10px">
+		<div class="row">
+			<h5>Edit Your Profile</h5>
+		    <form class="col s12" id="editProfileForm">
+		      <div class="row">
+		        <div class="input-field col s6">
+		          <input id="fname" name="fname" type="text" value="{{ user.fname }}">
+		          <label for="fname">First Name</label>
+		        </div>
+		        <div class="input-field col s6">
+		          <input id="lname" name="lname" type="text" value="{{ user.lname }}">
+		          <label for="lname">Last Name</label>
+		        </div>
+		      </div>
+		      <div class="row">
+		        <div class="input-field col s12">
+		          <input id="username" name="username" type="text" value="{{ user.username }}">
+		          <label for="username">Username</label>
+		        </div>
+		      </div>
+		      <button id="editProfileBtn" class="btn waves-effect">Update</button>
+		    	<div id="editProfileSpinner" class="hide preloader-wrapper small">
+				    <div class="spinner-layer spinner-blue-only">
+				      <div class="circle-clipper left">
+				        <div class="circle"></div>
+				      </div>
+				     <div class="gap-patch">
+				        <div class="circle"></div>
+				      </div>
+				      <div class="circle-clipper right">
+				        <div class="circle"></div>
+				      </div>
+				    </div>
+				</div>
+		    </form>
+		  </div>
+	</div>
+	<div id="sharedFilesView" style="margin: 10px">
+		<div class="row">
+			<div class="col s12">
+				<h5>Files Shared with you</h5>
+				{% if sharedFiles | length %}
+				<table>
+			        <thead>
+			          <tr>
+			              <th>Name</th>
+			              <th>Owner</th>
+			          </tr>
+			        </thead>
+			        <tbody>
+			        	{% for item in sharedFiles %}
 			        		{%  if item.isFile %}
 			        			<tr id="{{ item.id }}" class="filePost">
 						            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
 						            <td>{{item.owner.username}}</td>
-						            <td>{{item.url}}</td>
-						            <td><a class='dropdown-trigger' href='#' data-target='dropdown1'><i class="material-icons">more</i></a></td>
+						            <!-- <td>{{item.url}}</td> -->
+						            <!-- <td class="moreBtn"><a class='dropdown-trigger' data-target='dropdown1'><i class="material-icons">more</i></a></td> -->
 						          </tr>
 			        		{% endif %}
 			        	{% endfor %}
 			       	</tbody>
-			     </table>		
+			     </table>
+			     {% else %}
+			     <p>No Shared Files</p>
+			     {% endif %}		
 			</div>
 		</div>
 	</div>
-
 	  <!-- Dropdown Structure -->
-	  <ul id='dropdown1' class='dropdown-content'>
-	    <li><a href="#!">Delete</a></li>
-	    <li><a href="#!">View</a></li>
-	    <li><a href="#!">Downlaod</a></li>
-	    <li><a href="#!">Share</a></li>
+	  <ul id='filesDropdown' class='dropdown-content'>
+	    <li class="delBtn"><a ><i class="fas fa-trash-alt" style="margin-right: 0px"></i> Delete</a></li>
+	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
+	    <li><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
+	    <li><a class="shareBtn modal-trigger" href="#shareFileModal"><i class="fas fa-share-alt" style="margin-right: 0px"></i> Share</a></li>
+	  </ul>
+	  <ul id='sharedFilesDropdown' class='dropdown-content'>
+	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
+	    <li><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
+	  </ul>
+	  <ul id='foldersDropdown' class='dropdown-content'>
+	    <li class="delBtn"><a ><i class="fas fa-trash-alt" style="margin-right: 0px"></i> Delete</a></li>
 	  </ul>
 	<div class="fixed-action-btn">
 	  <a class="btn-floating btn-large red">
@@ -117,7 +210,6 @@
 	    <li><a class="btn-floating blue modal-trigger" href="#filesModal"><i class="material-icons">cloud_upload</i></a></li>
 	  </ul>
 	</div>
-	  <!-- <a style="position: fixed;right: 0px;bottom: 0px;margin: 15px" class="btn-floating btn-large waves-effect waves-light blue modal-trigger" href="#uploadModal"><i class="material-icons">add</i></a> -->
    <!-- Modal Structure -->
 	  <div id="filesModal" class="modal">
 	    <div class="modal-content"  style="padding: 15px">
@@ -140,7 +232,7 @@
 	  <div id="folderModal" class="modal">
 	    <div class="modal-content" style="padding: 15px" >
 	      <div class="row" style="margin:0px">
-	        <div class="input-field col s12" style="margin-bottom: 0px; margin-top: 0px">
+	        <div class="input-field col s12" style="margin-bottom: 0px;">
 	          <input type="text" id="folderName" name="folderName">
 	          <label for="folderName">Folder Name</label>
 	        </div>
@@ -150,31 +242,127 @@
 	      <a class="waves-effect btn" id="newFolderBtn">Create New Folder</a>
 	    </div>
 	  </div>
+	  <div id="shareFileModal" class="modal">
+	    <div class="modal-content" style="padding: 15px" >
+	      <div class="row" style="margin:0px">
+	        <div class="input-field col s12" style="margin-bottom: 0px;">
+	          <input type="text" id="sharedUsername" name="sharedUsername">
+	          <label for="sharedUsername">Username</label>
+	        </div>
+	      </div>
+	    </div>
+	    <div class="modal-footer">
+	      <a class="waves-effect btn" id="shareBtn">Share</a>
+	    </div>
+	  </div>
 </main>
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
 
 	$(document).ready(function(){
+		$('#profileView').fadeOut();
+		$('#searchResultsDiv').fadeOut();
+		$('#sharedFilesView').fadeOut();
 	    $('.sidenav').sidenav();
 	    $('.modal').modal();
 	 	$('.fixed-action-btn').floatingActionButton();
 	 	$('.dropdown-trigger').dropdown();
 	  });
+		var $selectedRow;
 
 		var el=$('main');
-		delBtn=el.find('.delBtn');
-		shareBtn=el.find('.shareBtn');
+		shareBtn=el.find('#shareBtn');
 		uploadBtn=el.find('#uploadBtn');
 		newFolderBtn=el.find('#newFolderBtn');
-		
-		delBtn.on('click',deleteFile);
-		shareBtn.on('click',shareFile);
+		$editProfileForm=$('#editProfileForm');
+
+		$('.delBtn').on('click',deleteFile);
 		uploadBtn.on('click',uploadFile);
 		newFolderBtn.on('click',uploadFile);
+		shareBtn.on('click', shareFile);
+
+		$('.moreBtn').on('click',function (event) {
+			$selectedRow=$(this).closest('tr');
+		});
+		
+		$("#profileBtn").on('click',showProfile);
+		$("#sharedFilesBtn").on('click',showSharedFiles);
+
+		$('#searchForm').submit(function (e) {
+			e.preventDefault();
+			$('#searchResults').empty();
+			filename=$('#searchBox').val();
+			$.ajax({
+				url:'/searchFiles',
+				data:{filename:filename},
+				type:'POST',
+				success:function (result) {
+					obj=JSON.parse(result);
+					if(obj.length<1){
+						M.toast({html: 'No results found!', displayLength:3000});
+					}
+					else{
+						for (var i = 0; i < obj.length; i++) {
+							console.log(obj[i].filename);
+							content='<tr class="filePost"><td><a href="'+ obj[i].url + '/' + obj[i].filename + '"><i class="fas fa-file" style="font-size: 32px"></i> '+ obj[i].filename +'</a></td><td>'+obj[i].owner+'</td></tr>';
+							$('#searchResults').append(content);
+						}
+						$('#searchResultsDiv').fadeIn();
+					}
+				}
+			});
+		})
+
+
+		function showSharedFiles() {
+			$(this).addClass('active');
+			$('#myFilesBtn').removeClass('active');
+			$('#profileBtn').removeClass('active');
+			$('#filesView').fadeOut('fast');
+			$('#profileView').fadeOut('fast');	
+			$('#sharedFilesView').fadeIn('slow');	
+		}
+
+		$editProfileForm.submit(function (e) {
+			e.preventDefault();
+			$('#editProfileBtn').addClass('hide');
+            $('#editProfileSpinner').addClass('active');
+            $('#editProfileSpinner').removeClass('hide');
+			var formData=$editProfileForm.serialize();
+			$.ajax({
+				url:'/editProfile',
+				data:formData,
+				type:'POST',
+				success:function (result) {
+					if(result=="1"){
+						M.toast({html: 'Successfully updated!', displayLength:3000});
+						$('#editProfileSpinner').removeClass('active');
+	                    $('#editProfileSpinner').addClass('hide');
+	                    $('#editProfileBtn').removeClass('hide');
+					}
+					else{
+						M.toast({html: result, displayLength:5000});
+	                	$('#editProfileSpinner').removeClass('active');
+	                	$('#editProfileSpinner').addClass('hide');
+	                	$('#editProfileBtn').removeClass('hide');
+					}
+				}
+			});
+		});
+
+
+		function showProfile() {
+			$(this).addClass('active');
+			$('#myFilesBtn').removeClass('active');
+			$('#sharedFilesBtn').removeClass('active');
+			$('#sharedFilesView').fadeOut('fast');
+			$('#filesView').fadeOut('fast');
+			$('#profileView').fadeIn('slow');	
+		}
 
 		function uploadFile() {
-			var form = $('form')[0];
+			var form = $('form')[2];
 			var formData=new FormData(form);
 			formData.append('url', window.location.pathname);
 			formData.append('folderName', $('#folderName').val());
@@ -197,33 +385,27 @@
 		}
 
 		function shareFile(event) {
-			$div=$(this).parent();
-			fileID=$div.attr('id');
-			username=$div.find('input').val();
+			fileID=$selectedRow.attr('id');
+			username=$('#sharedUsername').val();
 			$.ajax({
 				url:"/share",
 				method:'POST',
 				data:{username:username, fileID:fileID},
 				success:function (result) {
 					console.log(result);
-					if(result=="3"){
-						window.location.href=window.location.pathname;
-					}
+					M.toast({html: result, displayLength:3000});
 				}
 			});
 		}
 
 		function deleteFile(event) {
-			$div=$(this).closest('tr');
-			fileID=$div.attr('id');
+			fileID=$selectedRow.attr('id');
 			$.ajax({
 				url:"/deleteFile/"+fileID,
 				success: function (result) {
-					if(result.length){
-						console.log(result);
-						$div.fadeOut();
-						window.location.href=window.location.pathname;
-					}
+					$selectedRow.fadeOut();
+					M.toast({html: result, displayLength:5000});
+					window.location.href=window.location.pathname;
 				}
 			});
 		}

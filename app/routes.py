@@ -2,7 +2,7 @@ from app import app, db
 from flask import render_template, session, url_for, redirect, request
 from app.models import User, File
 from sqlalchemy import and_
-import json
+import os, shutil, json
 
 def isLoggedIn():
 	if 'userID' in session:
@@ -66,8 +66,30 @@ def register():
 	user=User(fname=fname, lname=lname, username=username, email=email)
 	user.set_pass(password)
 	db.session.add(user)
+	os.makedirs(app.config['UPLOADS']+"/" + username + "/home")
 	db.session.commit()
 	return "1"
+
+@app.route('/editProfile', methods=['POST'])
+def editProfile():
+	fname=request.form.get('fname', False)
+	if not fname:
+		return "Please fill First Name!"
+	lname=request.form.get('lname', False)
+	if not lname:
+		return "Please fill Last Name!"
+	username=request.form.get('username', False)
+	if not username:
+		return "Please fill Username!"
+	user=User.query.filter_by(username=username).first()
+	if user:
+		return "Username already exists!"
+	user=User.query.get(session['userID'])
+	user.fname=fname
+	user.lname=lname
+	user.username=username
+	db.session.commit()
+	return "1"	
 
 @app.route('/home/<path:path>')
 def show(path):
@@ -75,16 +97,18 @@ def show(path):
 		path="/home/"+path
 		path=path.replace(" ","%20")
 		user=User.query.get(session['userID'])
-		myFiles=File.query.filter(and_(File.owner==user, File.url==path))
-		return render_template('home.html', user=user, myFiles=myFiles, sharedFiles=user.sharedFiles)
+		myFiles=File.query.filter(and_(File.owner==user, File.url==path, File.isFile==True))
+		myFolders=File.query.filter(and_(File.owner==user, File.url==path, File.isFile==False))
+		return render_template('home.html', user=user, myFiles=myFiles, myFolders=myFolders, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/home')
 def home():
 	if isLoggedIn():
 		user=User.query.get(session['userID'])
-		myFiles=File.query.filter(and_(File.owner==user, File.url=="/home"))
-		return render_template('home.html', user=user, myFiles=myFiles, sharedFiles=user.sharedFiles)
+		myFiles=File.query.filter(and_(File.owner==user, File.url=="/home", File.isFile==True))
+		myFolders=File.query.filter(and_(File.owner==user, File.url=="/home", File.isFile==False))
+		return render_template('home.html', user=user, myFiles=myFiles, myFolders=myFolders, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
@@ -94,13 +118,16 @@ def upload():
 	url=request.form.get('url', False)
 	if len(files):
 		for file in files:
-			newFile=File(filename=file.filename, url=url, data=file.read(), owner=user)
+			newFile=File(filename=file.filename, url=url, owner=user)
 			db.session.add(newFile)
+			path = app.config['UPLOADS'] + "/" + user.username + url
+			file.save(os.path.join(path, file.filename))
 	else:
 		folderName=request.form.get('folderName', False)
 		if len(folderName):
 			newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
 			db.session.add(newFolder)
+			os.mkdir(app.config['UPLOADS'] + "/" + user.username + url + "/" + folderName)
 		else:
 			return "Please enter name"
 	db.session.commit()
@@ -111,24 +138,51 @@ def share():
 	fileID=request.form.get('fileID', False)
 	file=File.query.get(fileID)
 	if not file:
-		return "1"	# file not found
+		return "File not found!"	# file not found
 	username=request.form.get('username', False)
 	if not username:
-		return "2"	# user not found 
+		return "Please fill a username!"	# user not found 
 	toUser=User.query.filter_by(username=username).first()
 	if not toUser:
-		return "2" #user not found
+		return "No such user exists!" #user not found
 	toUser.sharedFiles.append(file)
 	db.session.commit()
-	return "3"
+	return "File Successfully Shared with " + username
+
+@app.route('/searchFiles', methods=['POST'])
+def searchFiles():
+	if isLoggedIn():
+		user=User.query.get(session['userID'])
+		searchText=request.form.get('filename',False)
+		if not searchText:
+			return "Enter something to search!"
+		results=[]
+		for item in user.myFiles:
+			if item.isFile and searchText.lower() in str(item.filename).lower():
+				results.append({"id":item.id,"filename":item.filename, "url":item.url ,"owner":item.owner.username})
+		for item in user.sharedFiles:
+			if item.isFile and searchText.lower() in str(item.filename).lower():
+				results.append({"id":item.id,"filename":item.filename, "url":item.url, "owner":item.owner.username})
+		return str(json.dumps(results))
+	return "you are not logged in"
 
 @app.route('/deleteFile/<fileID>')
 def deleteFile(fileID):
+	user=User.query.get(session['userID'])
 	file=File.query.get(fileID)
-	db.session.delete(file)
-	db.session.commit()
-	return "successfully deleted"
-
+	if file:
+		if file.owner.username==user.username:
+			db.session.delete(file)
+			if file.isFile:
+				os.remove(os.path.join(app.config['UPLOADS'] + "/" + user.username + file.url, file.filename))
+			else:
+				shutil.rmtree(app.config['UPLOADS'] + "/" + user.username + file.url + "/" + file.filename)
+			db.session.commit()
+			return file.filename + " Successfully Deleted!"
+		else:
+			return "you don't own this file"
+	else:
+		return "File not found!"
 @app.route('/logout')
 def logout():
 	session.pop('userID',None)

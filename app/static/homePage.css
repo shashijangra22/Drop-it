@@ -22,3 +22,11 @@
 td {
     padding: 10px;
 }
+.dropdown-content{
+    width: auto !important; 
+    height: auto !important;
+}
+
+input{
+  margin-bottom: 0px !important;
+}

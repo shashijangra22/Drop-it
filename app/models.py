@@ -31,7 +31,6 @@ class File(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	filename = db.Column(db.String(120))
 	url = db.Column(db.String(120))
-	data = db.Column(db.LargeBinary)
 	isFile = db.Column(db.Boolean, default=True)
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
