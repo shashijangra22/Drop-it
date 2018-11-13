@@ -1,5 +1,5 @@
 from app import app, db, moment
-from flask import render_template, session, url_for, redirect, request
+from flask import render_template, session, url_for, redirect, request, send_from_directory
 from app.models import User, File
 from sqlalchemy import and_
 from datetime import datetime
@@ -206,6 +206,14 @@ def deleteFile(fileID):
 			return "File not found!"
 	return redirect(url_for('index'))
 
+
+@app.route('/download/<int:fileID>')
+def download_file(fileID):
+	if isLoggedIn():
+		file=File.query.get(fileID)
+		path=app.config['UPLOADS']+"/"+file.owner.username+file.url
+		return send_from_directory(path,file.filename, as_attachment=True)
+	return redirect(url_for('index'))
 @app.route('/logout')
 def logout():
 	session.pop('userID',None)

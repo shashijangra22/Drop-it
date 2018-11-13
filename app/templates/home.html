@@ -171,7 +171,7 @@
 						            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
 						            <td>{{item.owner.username}}</td>
 						            <!-- <td>{{item.url}}</td> -->
-						            <!-- <td class="moreBtn"><a class='dropdown-trigger' data-target='dropdown1'><i class="material-icons">more</i></a></td> -->
+						            <td class="moreBtn"><a class='dropdown-trigger' data-target='sharedFilesDropdown'><i class="material-icons">more</i></a></td>
 						          </tr>
 			        		{% endif %}
 			        	{% endfor %}
@@ -187,12 +187,12 @@
 	  <ul id='filesDropdown' class='dropdown-content'>
 	    <li class="delBtn"><a ><i class="fas fa-trash-alt" style="margin-right: 0px"></i> Delete</a></li>
 	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
-	    <li><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
+	    <li class="downloadBtn"><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
 	    <li><a class="shareBtn modal-trigger" href="#shareFileModal"><i class="fas fa-share-alt" style="margin-right: 0px"></i> Share</a></li>
 	  </ul>
 	  <ul id='sharedFilesDropdown' class='dropdown-content'>
 	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
-	    <li><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
+	    <li class="downloadBtn"><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
 	  </ul>
 	  <ul id='foldersDropdown' class='dropdown-content'>
 	    <li class="delBtn"><a ><i class="fas fa-trash-alt" style="margin-right: 0px"></i> Delete</a></li>
@@ -274,9 +274,16 @@
 		$editProfileForm=$('#editProfileForm');
 
 		$('.delBtn').on('click',deleteFile);
+		$('.downloadBtn').on('click',downloadFile);
 		uploadBtn.on('click',uploadFile);
 		newFolderBtn.on('click',uploadFile);
 		shareBtn.on('click', shareFile);
+
+		function downloadFile() {
+			fileID=$selectedRow.attr('id');
+			// console.log(fileID);
+			window.location.href="/download/"+fileID;
+		}
 
 		$('.moreBtn').on('click',function (event) {
 			$selectedRow=$(this).closest('tr');
