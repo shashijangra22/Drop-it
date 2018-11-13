@@ -90,15 +90,19 @@ def home():
 @app.route('/upload', methods=['POST'])
 def upload():
 	user=User.query.get(session['userID'])
-	file = request.files.get('inputFile', False)
+	files = request.files.getlist("inputFiles")
 	url=request.form.get('url', False)
-	if file:
-		newFile=File(filename=file.filename, url=url, data=file.read(), owner=user)
-		db.session.add(newFile)
+	if len(files):
+		for file in files:
+			newFile=File(filename=file.filename, url=url, data=file.read(), owner=user)
+			db.session.add(newFile)
 	else:
 		folderName=request.form.get('folderName', False)
-		newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
-		db.session.add(newFolder)
+		if len(folderName):
+			newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
+			db.session.add(newFolder)
+		else:
+			return "Please enter name"
 	db.session.commit()
 	return "1"
 
