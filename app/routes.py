@@ -1,13 +1,21 @@
-from app import app, db
+from app import app, db, moment
 from flask import render_template, session, url_for, redirect, request
 from app.models import User, File
 from sqlalchemy import and_
+from datetime import datetime
 import os, shutil, json
 
 def isLoggedIn():
 	if 'userID' in session:
 		return True
 	return False
+
+@app.template_filter('getSize')
+def getSize(item):
+	user = User.query.get(session['userID'])
+	base = app.config['UPLOADS']+"/"+user.username
+	size=os.path.getsize(base+item.url+"/"+item.filename)
+	return size
 
 @app.route('/')
 def index():
@@ -87,6 +95,8 @@ def editProfile():
 	user=User.query.get(session['userID'])
 	user.fname=fname
 	user.lname=lname
+	os.chdir(app.config['UPLOADS'])
+	os.rename(user.username,username)
 	user.username=username
 	db.session.commit()
 	return "1"	
@@ -99,7 +109,10 @@ def show(path):
 		user=User.query.get(session['userID'])
 		myFiles=File.query.filter(and_(File.owner==user, File.url==path, File.isFile==True))
 		myFolders=File.query.filter(and_(File.owner==user, File.url==path, File.isFile==False))
-		return render_template('home.html', user=user, myFiles=myFiles, myFolders=myFolders, sharedFiles=user.sharedFiles)
+		size=0
+		for item in user.myFiles:
+			size+=getSize(item)
+		return render_template('home.html', user=user, myFiles=myFiles, spaceUsed=size, myFolders=myFolders, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/home')
@@ -107,8 +120,11 @@ def home():
 	if isLoggedIn():
 		user=User.query.get(session['userID'])
 		myFiles=File.query.filter(and_(File.owner==user, File.url=="/home", File.isFile==True))
+		size=0
+		for item in user.myFiles:
+			size+=getSize(item)
 		myFolders=File.query.filter(and_(File.owner==user, File.url=="/home", File.isFile==False))
-		return render_template('home.html', user=user, myFiles=myFiles, myFolders=myFolders, sharedFiles=user.sharedFiles)
+		return render_template('home.html', user=user, myFiles=myFiles, spaceUsed=size, myFolders=myFolders, sharedFiles=user.sharedFiles)
 	return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
@@ -168,21 +184,28 @@ def searchFiles():
 
 @app.route('/deleteFile/<fileID>')
 def deleteFile(fileID):
-	user=User.query.get(session['userID'])
-	file=File.query.get(fileID)
-	if file:
-		if file.owner.username==user.username:
-			db.session.delete(file)
-			if file.isFile:
-				os.remove(os.path.join(app.config['UPLOADS'] + "/" + user.username + file.url, file.filename))
+	if isLoggedIn():
+		user=User.query.get(session['userID'])
+		file=File.query.get(fileID)
+		if file:
+			if file.owner.username==user.username:
+				db.session.delete(file)
+				if file.isFile:
+					os.remove(os.path.join(app.config['UPLOADS'] + "/" + user.username + file.url, file.filename))
+				else:
+					path=file.url + "/" + file.filename
+					children = File.query.filter(File.url.contains(path))
+					for item in children:
+						db.session.delete(item)
+					shutil.rmtree(app.config['UPLOADS'] + "/" + user.username + path)
+				db.session.commit()
+				return file.filename + " Successfully Deleted!"
 			else:
-				shutil.rmtree(app.config['UPLOADS'] + "/" + user.username + file.url + "/" + file.filename)
-			db.session.commit()
-			return file.filename + " Successfully Deleted!"
+				return "you don't own this file"
 		else:
-			return "you don't own this file"
-	else:
-		return "File not found!"
+			return "File not found!"
+	return redirect(url_for('index'))
+
 @app.route('/logout')
 def logout():
 	session.pop('userID',None)

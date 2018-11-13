@@ -4,38 +4,34 @@
 {% endblock %}
 {% block content %}
 <header>
-	<div class="navbar-fixed">
-		<nav class="blue">
-		    <div class="nav-wrapper">
-		      <a href="{{url_for('home')}}" class="brand-logo">Drop it!</a>
-		      <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-		      <ul class="right hide-on-med-and-down">
-		        <li><a href="{{ url_for('logout') }}">Logout</a></li>
-		      </ul>
-		    </div>
-		  </nav>
-	</div>
-
 	<ul class="sidenav sidenav-fixed" id="mobile-demo">
-	    <li id="myFilesBtn" class="active"><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-cloud"></i> My Files</a></li>
+	    <li><div class="user-view">
+	      <a><h5>Welcome</h5></a>
+	      <a><span class="name">{{user.username}}</span></a>
+	      <a><span class="email">{{user.email}}</span></a>
+	      <a><span class="email">{{ spaceUsed | filesizeformat }} of 1 GB Used</span></a>
+	      <a>
+	      	<span>
+	      		<div class="progress" style="margin-top: 0px; height: 8px">
+	      			<div class="determinate blue" style="width:{{ spaceUsed//10000000  }}%"></div>
+	      		</div>
+	      	</span>
+	      </a>
+	    </div></li>
+	    <li><div class="divider"></div></li>
+	    <li style="margin-top: 10px" id="myFilesBtn" class="active"><a href="{{ url_for('home') }}"><i style="margin: 0px" class="fas fa-cloud"></i> My Files</a></li>
 	    <li id="sharedFilesBtn"><a style="cursor: pointer;"><i style="margin: 0px" class="fas fa-users"></i>Shared With Me</a></li>
 	    <li id="profileBtn"><a style="cursor: pointer;"><i style="margin: 0px" class="fas fa-user"></i>My Profile</a></li>
+	    <li><div class="divider"></div></li>
 	    <li><a href="{{ url_for('logout') }}"><i style="margin: 0px" class="fas fa-sign-out-alt"></i>Logout</a></li>
 	</ul>
 </header>
 <main>
 	<div id="filesView" style="margin: 10px">
-		<!-- <nav class="blue">
-		    <div class="nav-wrapper">
-		      <div class="col s12" style="margin-left: 20px">
-		        <a href="#!" class="breadcrumb" style="color: white">Home</a>
-		      </div>
-		    </div>
-		  </nav>
-		  <br> -->
-		<nav class="blue">
+		<nav class="black">
 		<div class="nav-wrapper" style="margin-bottom: 0px;">
-	        <form id="searchForm">
+	        <a href="#" data-target="mobile-demo" class="sidenav-trigger right"><i class="material-icons">menu</i></a>
+	        <form id="searchForm" style="width: 80%">
 		        <div class="input-field">
 		          <input name="searchBox" id="searchBox" type="search" placeholder="search for files...">
 		          <label class="label-icon" for="searchBox"><i class="material-icons">search</i></label>
@@ -47,7 +43,7 @@
 	  <div class="row" id="searchResultsDiv">
 			<div class="col s12">
 				<h5>Search Results</h5>
-				<table>
+				<table class="highlight responsive-table">
 			        <thead>
 			          <tr>
 			              <th>Name</th>
@@ -64,12 +60,12 @@
 			<div class="col s12">
 				<h5>Folders</h5>
 				{% if myFolders.count() %}
-				<table>
+				<table class="highlight responsive-table">
 			        <thead>
 			          <tr>
 			              <th>Name</th>
 			              <th>Owner</th>
-			              <th>URL</th>
+			              <th>Created On</th>
 			              <th>Actions</th>
 			          </tr>
 			        </thead>
@@ -78,7 +74,7 @@
 		        			<tr id="{{ item.id }}" class="filePost">
 					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-folder" style="font-size: 32px"></i> {{ item.filename }}</a></td>
 					            <td>{{item.owner.username}}</td>
-					            <td>{{item.url}}</td>
+					            <td>{{  moment(item.timestamp).fromNow() }}</td>
 					            <td class="moreBtn"><a class='dropdown-trigger' data-target='foldersDropdown'><i class="material-icons">more</i></a></td>
 					          </tr>
 			        	{% endfor %}
@@ -93,12 +89,12 @@
 			<div class="col s12">
 				<h5>Files</h5>
 				{% if myFiles.count() %}
-				<table>
+				<table class="highlight responsive-table">
 			        <thead>
 			          <tr>
 			              <th>Name</th>
-			              <th>Owner</th>
-			              <th>URL</th>
+			              <th>Size</th>
+			              <th>Created On</th>
 			              <th>Actions</th>
 			          </tr>
 			        </thead>
@@ -106,8 +102,8 @@
 			        	{% for item in myFiles %}
 		        			<tr id="{{ item.id }}" class="filePost">
 					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
-					            <td>{{item.owner.username}}</td>
-					            <td>{{item.url}}</td>
+					            <td> {{ item | getSize | filesizeformat}}</td>
+					            <td>{{ moment(item.timestamp).fromNow() }}</td>
 					            <td class="moreBtn"><a class='dropdown-trigger' data-target='filesDropdown'><i class="material-icons">more</i></a></td>
 					          </tr>
 			        	{% endfor %}
@@ -121,8 +117,8 @@
 	</div>
 	<div id="profileView" style="margin: 10px">
 		<div class="row">
-			<h5>Edit Your Profile</h5>
 		    <form class="col s12" id="editProfileForm">
+			<h5>Edit Your Profile</h5>
 		      <div class="row">
 		        <div class="input-field col s6">
 		          <input id="fname" name="fname" type="text" value="{{ user.fname }}">
@@ -161,7 +157,7 @@
 			<div class="col s12">
 				<h5>Files Shared with you</h5>
 				{% if sharedFiles | length %}
-				<table>
+				<table class="highlight responsive-table">
 			        <thead>
 			          <tr>
 			              <th>Name</th>
@@ -203,7 +199,7 @@
 	  </ul>
 	<div class="fixed-action-btn">
 	  <a class="btn-floating btn-large red">
-	    <i class="large material-icons">mode_edit</i>
+	    <i class="large material-icons">add</i>
 	  </a>
 	  <ul>
 	    <li><a class="btn-floating red modal-trigger" href="#folderModal"><i class="material-icons">create_new_folder</i></a></li>
