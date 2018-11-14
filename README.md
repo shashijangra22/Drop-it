@@ -27,10 +27,14 @@ git clone https://github.com/shashijangra22/Drop-it.git
 Open the directory
 
 ```
-cd Drop-it!
+cd Drop-it
+```
+setup a virtual environment
+
+```
+python3 -m venv venv
 ```
 activate the virtual environment
-
 ```
 source venv/bin/activate
 ```
@@ -39,6 +43,19 @@ install the dependencies with a simple command
 pip install -r modules.txt
 ```
 
+initialise the database
+```
+flask db init
+```
+create migrations in the database
+
+```
+flask db migrate
+```
+upgrade to the latest migration
+```
+flask db upgrade
+```
 run a local server
 
 ```
@@ -65,3 +82,7 @@ Write code in modules so that we can easily test your code. Feel free to make pu
 * **Varun Gupta**  
 * **Sarath Chandra** 
 * **Yaswanth Koravi** 
+
+## Acknowledgments
+
+* https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
