@@ -7,7 +7,9 @@ import os, shutil, json
 
 def isLoggedIn():
 	if 'userID' in session:
-		return True
+		user=User.query.get(session['userID'])
+		if user:
+			return True
 	return False
 
 @app.template_filter('getSize')
@@ -134,6 +136,9 @@ def upload():
 	url=request.form.get('url', False)
 	if len(files):
 		for file in files:
+			f=File.query.filter(and_(File.owner==user, File.url==url, File.isFile==True, File.filename==file.filename))
+			if f.count():
+				continue
 			newFile=File(filename=file.filename, url=url, owner=user)
 			db.session.add(newFile)
 			path = app.config['UPLOADS'] + "/" + user.username + url
@@ -143,7 +148,10 @@ def upload():
 		if len(folderName):
 			newFolder=File(filename=folderName, url=url, owner=user, isFile=False)
 			db.session.add(newFolder)
-			os.mkdir(app.config['UPLOADS'] + "/" + user.username + url + "/" + folderName)
+			try:
+				os.mkdir(app.config['UPLOADS'] + "/" + user.username + url + "/" + folderName)
+			except:
+				return "Folder already exists!"
 		else:
 			return "Please enter name"
 	db.session.commit()
