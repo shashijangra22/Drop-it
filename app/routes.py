@@ -159,19 +159,25 @@ def upload():
 
 @app.route('/share', methods=['POST'])
 def share():
-	fileID=request.form.get('fileID', False)
-	file=File.query.get(fileID)
-	if not file:
-		return "File not found!"	# file not found
-	username=request.form.get('username', False)
-	if not username:
-		return "Please fill a username!"	# user not found 
-	toUser=User.query.filter_by(username=username).first()
-	if not toUser:
-		return "No such user exists!" #user not found
-	toUser.sharedFiles.append(file)
-	db.session.commit()
-	return "File Successfully Shared with " + username
+	if isLoggedIn():
+		fileID=request.form.get('fileID', False)
+		file=File.query.get(fileID)
+		if not file:
+			return "File not found!"	# file not found
+		username=request.form.get('username', False)
+		if not username:
+			return "Please fill a username!"	# user not found 
+		toUser=User.query.filter_by(username=username).first()
+		if not toUser:
+			return "No such user exists!" #user not found
+		user=User.query.get(session['userID'])
+		if toUser==user:
+			return "Can't share with yourself"
+		toUser.sharedFiles.append(file)
+		db.session.commit()
+		return "File Successfully Shared with " + username
+	return redirect(url_for('index'))
+
 
 @app.route('/searchFiles', methods=['POST'])
 def searchFiles():

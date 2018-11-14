@@ -223,6 +223,19 @@
 	    </div>
 	    <div class="modal-footer">
 	      <a class="waves-effect btn" id="uploadBtn">Upload</a>
+	      <div id="uploadSpinner" class="hide preloader-wrapper small">
+		    <div class="spinner-layer spinner-blue-only">
+		      <div class="circle-clipper left">
+		        <div class="circle"></div>
+		      </div>
+		     <div class="gap-patch">
+		        <div class="circle"></div>
+		      </div>
+		      <div class="circle-clipper right">
+		        <div class="circle"></div>
+		      </div>
+		    </div>
+		</div>
 	    </div>
 	  </div>
 	  <div id="folderModal" class="modal">
@@ -366,6 +379,9 @@
 		}
 
 		function uploadFile() {
+			$('#uploadBtn').addClass('hide');
+            $('#uploadSpinner').addClass('active');
+            $('#uploadSpinner').removeClass('hide');
 			var form = $('form')[2];
 			var formData=new FormData(form);
 			formData.append('url', window.location.pathname);
@@ -383,6 +399,9 @@
 					}
 					else{
 						M.toast({html: result, displayLength:5000});
+						$('#uploadSpinner').removeClass('active');
+	                	$('#uploadSpinner').addClass('hide');
+	                	$('#uploadBtn').removeClass('hide');
 					}
 				}
 			});
@@ -397,7 +416,6 @@
 				data:{username:username, fileID:fileID},
 				success:function (result) {
 					M.toast({html: result, displayLength:3000});
-					window.location.href=window.location.pathname;
 				}
 			});
 		}
