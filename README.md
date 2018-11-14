@@ -6,6 +6,7 @@ A file hosting web app like dropbox made with flask with basic functionalities l
 - creating a directory structure
 - sharing a file with another user
 - view shared files
+- view and download files to your system
 - search files
 
 ## Getting Started
