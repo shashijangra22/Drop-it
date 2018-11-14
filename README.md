@@ -65,9 +65,3 @@ Write code in modules so that we can easily test your code. Feel free to make pu
 * **Varun Gupta**  
 * **Sarath Chandra** 
 * **Yaswanth Koravi** 
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
