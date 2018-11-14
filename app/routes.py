@@ -214,6 +214,16 @@ def download_file(fileID):
 		path=app.config['UPLOADS']+"/"+file.owner.username+file.url
 		return send_from_directory(path,file.filename, as_attachment=True)
 	return redirect(url_for('index'))
+
+@app.route('/view/<int:fileID>')
+def view_file(fileID):
+	if isLoggedIn():
+		file=File.query.get(fileID)
+		if file.isFile:
+			path=app.config['UPLOADS']+"/"+file.owner.username+file.url
+			return send_from_directory(path,file.filename)
+	return redirect(url_for('index'))
+
 @app.route('/logout')
 def logout():
 	session.pop('userID',None)

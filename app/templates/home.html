@@ -75,7 +75,7 @@
 					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i class="fas fa-folder" style="font-size: 32px"></i> {{ item.filename }}</a></td>
 					            <td>{{item.owner.username}}</td>
 					            <td>{{  moment(item.timestamp).fromNow() }}</td>
-					            <td class="moreBtn"><a class='dropdown-trigger' data-target='foldersDropdown'><i class="material-icons">more</i></a></td>
+					            <td><a class='moreBtn dropdown-trigger' data-target='foldersDropdown'><i class="material-icons">more</i></a></td>
 					          </tr>
 			        	{% endfor %}
 			        </tbody>
@@ -101,10 +101,10 @@
 			        <tbody>
 			        	{% for item in myFiles %}
 		        			<tr id="{{ item.id }}" class="filePost">
-					            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
+					            <td><a class="openFileBtn" href="/view/{{item.id}}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
 					            <td> {{ item | getSize | filesizeformat}}</td>
 					            <td>{{ moment(item.timestamp).fromNow() }}</td>
-					            <td class="moreBtn"><a class='dropdown-trigger' data-target='filesDropdown'><i class="material-icons">more</i></a></td>
+					            <td ><a class='moreBtn dropdown-trigger' data-target='filesDropdown'><i class="material-icons">more</i></a></td>
 					          </tr>
 			        	{% endfor %}
 			       	</tbody>
@@ -168,10 +168,10 @@
 			        	{% for item in sharedFiles %}
 			        		{%  if item.isFile %}
 			        			<tr id="{{ item.id }}" class="filePost">
-						            <td><a class="openFileBtn" href="{{ item.url }}/{{ item.filename }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
+						            <td><a class="openFileBtn" href="/view/{{ item.id }}"><i style="font-size: 32px" class="fas fa-file"></i> {{ item.filename }}</a></td>
 						            <td>{{item.owner.username}}</td>
 						            <!-- <td>{{item.url}}</td> -->
-						            <td class="moreBtn"><a class='dropdown-trigger' data-target='sharedFilesDropdown'><i class="material-icons">more</i></a></td>
+						            <td><a class='moreBtn dropdown-trigger' data-target='sharedFilesDropdown'><i class="material-icons">more</i></a></td>
 						          </tr>
 			        		{% endif %}
 			        	{% endfor %}
@@ -186,12 +186,12 @@
 	  <!-- Dropdown Structure -->
 	  <ul id='filesDropdown' class='dropdown-content'>
 	    <li class="delBtn"><a ><i class="fas fa-trash-alt" style="margin-right: 0px"></i> Delete</a></li>
-	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
+	    <li class="viewBtn" ><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
 	    <li class="downloadBtn"><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
-	    <li><a class="shareBtn modal-trigger" href="#shareFileModal"><i class="fas fa-share-alt" style="margin-right: 0px"></i> Share</a></li>
+	    <li><a class="modal-trigger" href="#shareFileModal"><i class="fas fa-share-alt" style="margin-right: 0px"></i> Share</a></li>
 	  </ul>
 	  <ul id='sharedFilesDropdown' class='dropdown-content'>
-	    <li><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
+	    <li class="viewBtn" ><a><i class="fas fa-eye" style="margin-right: 0px"></i> View</a></li>
 	    <li class="downloadBtn"><a><i class="fas fa-file-download" style="margin-right: 0px"></i>Downlaod</a></li>
 	  </ul>
 	  <ul id='foldersDropdown' class='dropdown-content'>
@@ -263,34 +263,35 @@
 	    $('.sidenav').sidenav();
 	    $('.modal').modal();
 	 	$('.fixed-action-btn').floatingActionButton();
-	 	$('.dropdown-trigger').dropdown();
 	  });
+	 	$('.dropdown-trigger').dropdown();
 		var $selectedRow;
 
 		var el=$('main');
-		shareBtn=el.find('#shareBtn');
-		uploadBtn=el.find('#uploadBtn');
-		newFolderBtn=el.find('#newFolderBtn');
 		$editProfileForm=$('#editProfileForm');
 
 		$('.delBtn').on('click',deleteFile);
+		$('.viewBtn').on('click',viewFile);
 		$('.downloadBtn').on('click',downloadFile);
-		uploadBtn.on('click',uploadFile);
-		newFolderBtn.on('click',uploadFile);
-		shareBtn.on('click', shareFile);
+		$('#shareBtn').on('click', shareFile);
+		$('#uploadBtn').on('click',uploadFile);
+		$('#newFolderBtn').on('click',uploadFile);
+		$("#profileBtn").on('click',showProfile);
+		$("#sharedFilesBtn").on('click',showSharedFiles);
+		$('.moreBtn').on('click',function () {
+			$selectedRow=$(this).closest('tr');
+			console.log($selectedRow);
+		});
 
 		function downloadFile() {
 			fileID=$selectedRow.attr('id');
-			// console.log(fileID);
 			window.location.href="/download/"+fileID;
 		}
 
-		$('.moreBtn').on('click',function (event) {
-			$selectedRow=$(this).closest('tr');
-		});
-		
-		$("#profileBtn").on('click',showProfile);
-		$("#sharedFilesBtn").on('click',showSharedFiles);
+		function viewFile() {
+			fileID=$selectedRow.attr('id');
+			window.location.href="/view/"+fileID;
+		}
 
 		$('#searchForm').submit(function (e) {
 			e.preventDefault();
@@ -387,7 +388,7 @@
 			});
 		}
 
-		function shareFile(event) {
+		function shareFile() {
 			fileID=$selectedRow.attr('id');
 			username=$('#sharedUsername').val();
 			$.ajax({
@@ -395,13 +396,13 @@
 				method:'POST',
 				data:{username:username, fileID:fileID},
 				success:function (result) {
-					console.log(result);
 					M.toast({html: result, displayLength:3000});
+					window.location.href=window.location.pathname;
 				}
 			});
 		}
 
-		function deleteFile(event) {
+		function deleteFile() {
 			fileID=$selectedRow.attr('id');
 			$.ajax({
 				url:"/deleteFile/"+fileID,
